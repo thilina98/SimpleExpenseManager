@@ -5,7 +5,6 @@ import lk.ac.mrt.cse.dbs.simpleexpensemanager.data.AccountDAO;
 import lk.ac.mrt.cse.dbs.simpleexpensemanager.data.TransactionDAO;
 import lk.ac.mrt.cse.dbs.simpleexpensemanager.data.impl.PersistentAccountDAO;
 import lk.ac.mrt.cse.dbs.simpleexpensemanager.data.impl.PersistentTransactionDAO;
-import lk.ac.mrt.cse.dbs.simpleexpensemanager.data.model.Account;
 
 public class PersistentExpenseManager extends ExpenseManager{
     @Override
@@ -17,7 +16,6 @@ public class PersistentExpenseManager extends ExpenseManager{
 
         AccountDAO persistentAccountDAO = new PersistentAccountDAO();
         setAccountsDAO(persistentAccountDAO);
-
 
         /*** End ***/
     }
