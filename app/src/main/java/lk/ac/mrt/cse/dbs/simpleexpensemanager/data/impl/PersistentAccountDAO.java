@@ -1,5 +1,10 @@
 package lk.ac.mrt.cse.dbs.simpleexpensemanager.data.impl;
 
+import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+import android.support.annotation.Nullable;
+
 import java.util.List;
 
 import lk.ac.mrt.cse.dbs.simpleexpensemanager.data.AccountDAO;
@@ -7,7 +12,11 @@ import lk.ac.mrt.cse.dbs.simpleexpensemanager.data.exception.InvalidAccountExcep
 import lk.ac.mrt.cse.dbs.simpleexpensemanager.data.model.Account;
 import lk.ac.mrt.cse.dbs.simpleexpensemanager.data.model.ExpenseType;
 
-public class PersistentAccountDAO implements AccountDAO {
+public class PersistentAccountDAO extends SQLiteOpenHelper implements AccountDAO{
+    public PersistentAccountDAO(@Nullable Context context, @Nullable String name, @Nullable SQLiteDatabase.CursorFactory factory, int version) {
+        super(context, name, factory, version);
+    }
+
     @Override
     public List<String> getAccountNumbersList() {
         return null;
@@ -35,6 +44,16 @@ public class PersistentAccountDAO implements AccountDAO {
 
     @Override
     public void updateBalance(String accountNo, ExpenseType expenseType, double amount) throws InvalidAccountException {
+
+    }
+
+    @Override
+    public void onCreate(SQLiteDatabase sqLiteDatabase) {
+
+    }
+
+    @Override
+    public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
 
     }
 }
