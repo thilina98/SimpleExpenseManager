@@ -20,7 +20,7 @@ public class PersistentExpenseManager extends ExpenseManager{
     public void setup() throws ExpenseManagerException {
         /*** Begin generating dummy data for In-Memory implementation ***/
 
-        TransactionDAO persistentTransactionDAO = new PersistentTransactionDAO();
+        TransactionDAO persistentTransactionDAO = new PersistentTransactionDAO(context, "190238U.db", null, 1);
         setTransactionsDAO(persistentTransactionDAO);
 
         AccountDAO persistentAccountDAO = new PersistentAccountDAO(context, "190238U.db", null, 1);
