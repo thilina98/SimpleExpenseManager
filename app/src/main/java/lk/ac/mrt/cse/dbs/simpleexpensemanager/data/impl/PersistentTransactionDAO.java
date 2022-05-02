@@ -21,6 +21,10 @@ public class PersistentTransactionDAO extends SQLiteOpenHelper implements Transa
     public static final String AMOUNT = "Amount";
     public static final String DATE = "Date";
 
+    public PersistentTransactionDAO(@Nullable Context context, @Nullable String name, @Nullable SQLiteDatabase.CursorFactory factory, int version) {
+        super(context, name, factory, version);
+    }
+
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
         String createTransactionTableStatement = "CREATE TABLE Transactions(" + ID + " PRIMARY KEY AUTOINCREMENT, " + ACCOUNT_NO + " TEXT NOT NULL, " + TYPE + " TEXT NOT NULL, " + AMOUNT + " INT NOT NULL, " + DATE + " TEXT NOT NULL)";
@@ -32,9 +36,6 @@ public class PersistentTransactionDAO extends SQLiteOpenHelper implements Transa
 
     }
 
-    public PersistentTransactionDAO(@Nullable Context context, @Nullable String name, @Nullable SQLiteDatabase.CursorFactory factory, int version) {
-        super(context, name, factory, version);
-    }
 
     @Override
     public void logTransaction(Date date, String accountNo, ExpenseType expenseType, double amount) {
