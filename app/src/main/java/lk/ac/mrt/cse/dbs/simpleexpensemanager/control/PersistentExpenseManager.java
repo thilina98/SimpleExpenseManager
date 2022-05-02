@@ -7,6 +7,7 @@ import lk.ac.mrt.cse.dbs.simpleexpensemanager.data.AccountDAO;
 import lk.ac.mrt.cse.dbs.simpleexpensemanager.data.TransactionDAO;
 import lk.ac.mrt.cse.dbs.simpleexpensemanager.data.impl.PersistentAccountDAO;
 import lk.ac.mrt.cse.dbs.simpleexpensemanager.data.impl.PersistentTransactionDAO;
+import lk.ac.mrt.cse.dbs.simpleexpensemanager.data.model.Account;
 import lk.ac.mrt.cse.dbs.simpleexpensemanager.ui.MainActivity;
 
 public class PersistentExpenseManager extends ExpenseManager{
@@ -14,6 +15,11 @@ public class PersistentExpenseManager extends ExpenseManager{
 
     public PersistentExpenseManager(Context context){
         this.context = context;
+        try {
+            setup();
+        } catch (ExpenseManagerException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -25,6 +31,11 @@ public class PersistentExpenseManager extends ExpenseManager{
 
         AccountDAO persistentAccountDAO = new PersistentAccountDAO(context, "190238U.db", null, 1);
         setAccountsDAO(persistentAccountDAO);
+
+        // dummy data
+        Account dummyAcct1 = new Account("190238U", "ABC Bank", "Thilina Ilesinghe", 1250.0);
+
+        getAccountsDAO().addAccount(dummyAcct1);
 
         /*** End ***/
     }

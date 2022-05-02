@@ -10,7 +10,7 @@ import android.support.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.transform.dom.DOMResult;
+//import javax.xml.transform.dom.DOMResult;
 
 import lk.ac.mrt.cse.dbs.simpleexpensemanager.data.AccountDAO;
 import lk.ac.mrt.cse.dbs.simpleexpensemanager.data.exception.InvalidAccountException;
@@ -19,10 +19,15 @@ import lk.ac.mrt.cse.dbs.simpleexpensemanager.data.model.ExpenseType;
 
 public class PersistentAccountDAO extends SQLiteOpenHelper implements AccountDAO{
     public static final String ACCOUNT_TABLE = "Account";
+    public static final String TRANSACTION_TABLE = "`Transaction`";
     public static final String ACCOUNT_NO = "Account_No";
     public static final String HOLDER = "Holder";
     public static final String BANK = "Bank";
     public static final String BALANCE = "Balance";
+    public static final String ID = "ID";
+    public static final String TYPE = "Type";
+    public static final String AMOUNT = "Amount";
+    public static final String DATE = "Date";
 
     public PersistentAccountDAO(@Nullable Context context, @Nullable String name, @Nullable SQLiteDatabase.CursorFactory factory, int version) {
         super(context, name, factory, version);
@@ -32,6 +37,8 @@ public class PersistentAccountDAO extends SQLiteOpenHelper implements AccountDAO
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
         String createAccountTableStatement = "CREATE TABLE Account(" + ACCOUNT_NO + " TEXT PRIMARY KEY, " + HOLDER + " TEXT NOT NULL, " + BANK + " TEXT NOT NULL, " + BALANCE + " REAL NOT NULL)";
         sqLiteDatabase.execSQL(createAccountTableStatement);
+        String createTransactionTableStatement = "CREATE TABLE `Transaction`(" + ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " + ACCOUNT_NO + " TEXT NOT NULL, " + TYPE + " TEXT NOT NULL, " + AMOUNT + " REAL NOT NULL, " + DATE + " TEXT NOT NULL)";
+        sqLiteDatabase.execSQL(createTransactionTableStatement);
     }
 
     @Override
@@ -53,9 +60,10 @@ public class PersistentAccountDAO extends SQLiteOpenHelper implements AccountDAO
                 String acNo = cursor.getString(0);
                 returnList.add(acNo);
             }while(cursor.moveToNext());
-        }else{
-            // nothing to add to the list
         }
+
+        cursor.close();
+
         return returnList;
     }
 
@@ -75,11 +83,9 @@ public class PersistentAccountDAO extends SQLiteOpenHelper implements AccountDAO
                 String bank = cursor.getString(2);
                 double balance = cursor.getDouble(3);
 
-                Account account = new Account(acNo, bank, holder, (double)balance);
+                Account account = new Account(acNo, bank, holder, balance);
                 returnList.add(account);
             }while(cursor.moveToNext());
-        }else{
-            // will not add anything to the list.
         }
 
         cursor.close();
@@ -95,17 +101,23 @@ public class PersistentAccountDAO extends SQLiteOpenHelper implements AccountDAO
         SQLiteDatabase sqLiteDatabase = this.getReadableDatabase();
         Cursor cursor = sqLiteDatabase.rawQuery(queryString, null);
 
-        String acNo = cursor.getString(0);
-        String holder = cursor.getString(1);
-        String bank = cursor.getString(2);
-        double balance = cursor.getDouble(3);
+        if(cursor.moveToFirst()){
+            String acNo = cursor.getString(0);
+            String holder = cursor.getString(1);
+            String bank = cursor.getString(2);
+            double balance = cursor.getDouble(3);
 
-        Account account = new Account(acNo, bank, holder, (double)balance);
+            Account account = new Account(acNo, bank, holder, (double) balance);
 
-        cursor.close();
-        sqLiteDatabase.close();
+            cursor.close();
+            sqLiteDatabase.close();
 
-        return account;
+            return  account;
+        }else{
+            cursor.close();
+            sqLiteDatabase.close();
+            throw new InvalidAccountException("This account number is invalid");
+        }
     }
 
     @Override
@@ -118,7 +130,7 @@ public class PersistentAccountDAO extends SQLiteOpenHelper implements AccountDAO
         cv.put(BANK, account.getBankName());
         cv.put(BALANCE, account.getBalance());
 
-        sqLiteDatabase.insert(ACCOUNT_TABLE, null, cv);
+        sqLiteDatabase.insertWithOnConflict(ACCOUNT_TABLE, null, cv,SQLiteDatabase.CONFLICT_IGNORE);
         sqLiteDatabase.close();
     }
 
@@ -135,24 +147,26 @@ public class PersistentAccountDAO extends SQLiteOpenHelper implements AccountDAO
     public void updateBalance(String accountNo, ExpenseType expenseType, double amount) throws InvalidAccountException {
         SQLiteDatabase sqLiteDatabase = this.getReadableDatabase();
 
-        String getBalanceQuery = "SELECT " + BALANCE + " FROM " + ACCOUNT_TABLE + " WHERE " + ACCOUNT_NO + "=" + accountNo;
-        Cursor cursor = sqLiteDatabase.rawQuery(getBalanceQuery, null);
+        String getBalanceQuery = "SELECT " + BALANCE + " FROM " + ACCOUNT_TABLE + " WHERE " + ACCOUNT_NO + "=?";
+        Cursor cursor = sqLiteDatabase.rawQuery(getBalanceQuery, new String[]{accountNo});
 
-        String strBalance = cursor.getString(0);
-        double balance = Double.parseDouble(strBalance);
+        if(cursor.moveToFirst()) {
+            Double balance = cursor.getDouble(0);
+//            double balance = Double.parseDouble(strBalance);
 
-        double newBalance;
+            double newBalance;
 
-        if (expenseType.equals(0)){
-            newBalance = balance - amount;
-        }else{
-            newBalance = balance + amount;
+            if (expenseType.equals(ExpenseType.EXPENSE)) {
+                newBalance = balance - amount;
+            } else {
+                newBalance = balance + amount;
+            }
+
+            String strNewBalance = Double.toString(newBalance);
+            String updateString = "UPDATE " + ACCOUNT_TABLE + " SET " + BALANCE + "=" + strNewBalance + " WHERE " + ACCOUNT_NO + "=?";
+
+            sqLiteDatabase.execSQL(updateString,new String[]{accountNo});
         }
-
-        String strNewBalance = new Double(newBalance).toString();
-        String updateString = "UPDATE "+ ACCOUNT_TABLE + " SET " + BALANCE + "=" + strNewBalance + " WHERE " + ACCOUNT_NO + "=" + accountNo;
-
-        sqLiteDatabase.execSQL(updateString);
 
         cursor.close();
         sqLiteDatabase.close();
